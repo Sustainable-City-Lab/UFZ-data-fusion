@@ -1,3 +1,7 @@
+ """
+ This file is the fusion module in "An enhanced day-night feature fusion method for fine-grained urban functional 
+zone mapping from the SDGSAT-1 imagery"
+ """
 import tensorflow as tf
 from tensorflow.keras import layers
 
@@ -5,23 +9,15 @@ from tensorflow.keras import layers
 class FusionModule(tf.keras.layers.Layer):
     def __init__(self, dropout_rate=0.1, **kwargs):
         super(FusionModule, self).__init__(**kwargs)
-        # 用于 DBI 模块的卷积层（生成门控系数）
         self.conv_sigmoid = layers.Conv2D(filters=1, kernel_size=1, activation='sigmoid')
-        # 专用于空间注意力的卷积层
         self.spatial_conv = layers.Conv2D(filters=1, kernel_size=7, activation='sigmoid', padding='same')
-
         self.conv_relu_1x1 = layers.Conv2D(filters=1, kernel_size=1, activation='relu')
-        # 专用于 dilated_convolution 分支的 1×1 卷积层（用于处理 upsampled 分支）
         self.dilated_conv_relu_1x1 = layers.Conv2D(filters=1, kernel_size=1, activation='relu')
-        # 用于处理 dilated_convolution 后输出的 1×1 卷积层（post-fusion）
         self.fusion_conv_1x1 = layers.Conv2D(filters=1, kernel_size=1, activation='relu')
-
         self.conv_relu_3x3 = layers.Conv2D(filters=1, kernel_size=3, activation='relu', padding='same')
-
         self.dense_layer = layers.Dense(units=1, activation='relu')
         self.dropout_rate = dropout_rate
 
-        # 空洞卷积分支的层
         self.downsample_conv = layers.Conv2D(1, 1, strides=2, activation='relu', padding='same')
         self.depthwise_conv = [
             layers.DepthwiseConv2D(3, dilation_rate=i, activation='relu', padding='same')
@@ -122,7 +118,7 @@ class FusionModule(tf.keras.layers.Layer):
 
 # 使用示例
 if __name__ == "__main__":
-    # 创建测试输入（各输入的空间尺寸相同）
+    # 创建测试输入（通过特征提取模块后，各输入的空间尺寸相同）
     msi = tf.random.normal([8, 16, 16, 64])  # (batch, h, w, channels)
     gli = tf.random.normal([8, 16, 16, 64])
     bdh = tf.random.normal([8, 16, 16, 64])
